@@ -214,7 +214,15 @@
     // --------------------
 
     VElement.prototype = {
-        
+
+        /**
+         * @param {SVGGElement} toElem
+         * @returns {SVGMatrix}
+         */
+        getTransformToElement: function(toElem) {
+            return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
+        },
+
         translate: function(tx, ty, opt) {
 
             opt = opt || {};
@@ -320,7 +328,7 @@
                 return box;
             }
 
-            var matrix = this.node.getTransformToElement(target || this.node.ownerSVGElement);
+            var matrix = this.getTransformToElement(target || this.node.ownerSVGElement);
             var point = this.node.ownerSVGElement.createSVGPoint();
 
             point.x = box.x;
@@ -493,7 +501,7 @@
 	    try {
 
 		var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
-		var globalToLocalMatrix = this.node.getTransformToElement(svg).inverse();
+		var globalToLocalMatrix = this.getTransformToElement(svg).inverse();
 
 	    } catch(e) {
 		// IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
@@ -546,7 +554,7 @@
             translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
             // 4. Apply transformations.
-            var ctm = this.node.getTransformToElement(target);
+            var ctm = this.getTransformToElement(target);
             var transform = svg.createSVGTransform();
             transform.setMatrix(
                 translateFinal.matrix.multiply(
