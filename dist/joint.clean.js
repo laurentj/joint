@@ -1,4 +1,4 @@
-/*! JointJS v0.9.2 - JavaScript diagramming library  2014-09-16 
+/*! JointJS v0.9.2.1 - JavaScript diagramming library  2016-02-03 
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -962,7 +962,7 @@ var joint = {
                 var i = 0;
                 if (value) {
                     if (value < 0) value *= -1;
-                    if (precision) value = d3.round(value, this.precision(value, precision));
+                    if (precision) value = this.round(value, this.precision(value, precision));
                     i = 1 + Math.floor(1e-12 + Math.log(value) / Math.LN10);
                     i = Math.max(-24, Math.min(24, Math.floor((i <= 0 ? i + 1 : i - 1) / 3) * 3));
                 }
@@ -3257,18 +3257,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var connectionElement = this._V.connection.node;
         var connectionLength = connectionElement.getTotalLength();
 
-        _.each(labels, function(label, idx) {
+        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
+        // In that case we won't update labels at all.
+        if (!_.isNaN(connectionLength)) {
 
-            var position = label.position;
-            position = (position > connectionLength) ? connectionLength : position; // sanity check
-            position = (position < 0) ? connectionLength + position : position;
-            position = position > 1 ? position : connectionLength * position;
+            _.each(labels, function(label, idx) {
 
-            var labelCoordinates = connectionElement.getPointAtLength(position);
+                var position = label.position;
+                position = (position > connectionLength) ? connectionLength : position; // sanity check
+                position = (position < 0) ? connectionLength + position : position;
+                position = position > 1 ? position : connectionLength * position;
 
-            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+                var labelCoordinates = connectionElement.getPointAtLength(position);
 
-        }, this);
+                this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+
+            }, this);
+        }
 
         return this;
     },
